@@ -1,3 +1,7 @@
+#GitHub url: 
+#https://github.com/keerthipriya26/ltibbhackathon.git
+
+
 #git and docker install
 yum install git docker -y && systemctl start docker
 
