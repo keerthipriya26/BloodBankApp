@@ -1,0 +1,26 @@
+#GitHub url: 
+#https://github.com/keerthipriya26/ltibbhackathon.git
+
+
+#git and docker install
+yum install git docker -y && systemctl start docker
+
+#Trivy scan image 1
+
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+#Jenkins setup cmds
+
+yum install java-17-amazon-corretto -y
+java -version
+sudo wget -O /etc/yum.repos.d/jenkins.repo     https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+yum install jenkins -y
+systemctl status jenkins
+systemctl start jenkins
+systemctl status Jenkins
+chmod 777 /var/run/docker.sock
+
+#sonarqube
+docker run -d --name sonar -p 1111:9000 sonarqube:lts-community
+

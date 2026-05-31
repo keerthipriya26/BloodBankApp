@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+    environment{
+        scannerHome = tool "mysonar"
+    }
+        stages {
+            stage("code"){
+                steps {
+                    git "https://github.com/keerthipriya26/ltibbhackathon.git"
+                }
+            }
+            stage("CQA"){
+                steps{
+                    withSonarQubeEnv("mysonar") {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=myproject"
+                    }
+                }
+            }
+            stage("QualityGates"){
+                steps{
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonartoken'
+                }
+            }
+            stage("Images"){
+                steps{
+                    sh "docker build -t dbimage database"
+                    sh "docker build -t appimage ."
+                }
+            }
+            stage("image scan"){
+                steps{
+                    sh "trivy image dbimage"
+                    sh "trivy image appimage"
+                }
+            }
+            stage("tags"){
+                steps{
+                    sh "docker tag dbimage kee26/myapplication:db"
+                    sh "docker tag appimage kee26/myapplication:app"
+                }    
+            }
+            stage("push"){
+                steps{
+                    script{
+                        withDockerRegistry(credentialsId: 'dockerhub') {
+                            sh "docker push kee26/myapplication:db"
+                            sh "docker push kee26/myapplication:app"
+                        }
+                    }
+                }
+            }
+            stage("deploy"){
+                steps{
+                    sh "docker run -d --name mysqldb -p 3306:3306 kee26/myapplication:db"
+                    sh "docker run -d --name appcont -p 2222:80 --link mysqldb:appDBLink kee26/myapplication:app"
+                }
+            }
+        }
+}
